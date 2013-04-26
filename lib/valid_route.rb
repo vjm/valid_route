@@ -1,0 +1,1 @@
+require 'valid_route/all'
