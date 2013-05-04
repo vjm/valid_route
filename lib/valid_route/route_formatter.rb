@@ -5,7 +5,7 @@ module ValidRoute
 		end
 
 		def result
-			@buffer.join("\n").scan(/\s\/(\w+)/).flatten.compact.uniq
+			@buffer #.compact.uniq
 		end
 
 		def section_title(title)
@@ -13,6 +13,7 @@ module ValidRoute
 
 		def section(routes)
 			@buffer << array_paths(routes)
+			@buffer.flatten!
 		end
 
 		def header(routes)
@@ -24,9 +25,10 @@ module ValidRoute
 
 		private
 		def array_paths(routes)
+			regexp = "(.:format)"
 			paths = []
 			routes.map do |r|
-				paths << r[:path]
+				paths << {path: r[:path].sub(regexp, ""), verb: r[:verb], reqs: r[:reqs] }
 			end
 			paths
 		end

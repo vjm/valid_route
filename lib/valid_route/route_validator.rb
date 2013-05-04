@@ -3,10 +3,25 @@ class RouteValidator < ActiveModel::EachValidator
 		inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
 		results = inspector.format(ValidRoute::RouteFormatter.new)
 
-		puts results
+		req = record.class.name.underscore
+
+		matches = []
+
+		results.delete_if { |route|
+			 route[:verb] != "GET"
+		}
+
+		results.each { |result|
+			matches.push result if result[:reqs].include?(req)
+		}
+
+
+
+
+		# puts results
 
 		unless options[:additional_routes_reserved].nil?
-			results << options[:additional_routes_reserved] 
+			results << options[:additional_routes_reserved]
 			results = results.flatten.compact.uniq
 		end
 
@@ -20,7 +35,6 @@ class RouteValidator < ActiveModel::EachValidator
 		end
 
 		if results.include?(value)
-
 			record.errors[attribute] << (options[:message] || "route is taken")
 		end
 	end
