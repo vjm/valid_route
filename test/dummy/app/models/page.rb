@@ -4,7 +4,7 @@ class Page < ActiveRecord::Base
 	# extend FriendlyId
 	# friendly_id :permalink #, use: :slugged
 
-	validates :permalink, :route => true
+	validates :permalink, :route => {reserved_routes: ["reserved", "tommy"]}
 
 	validates_format_of :permalink, :without => /^\d/, :multiline => true
 	

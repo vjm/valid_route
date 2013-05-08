@@ -1,58 +1,23 @@
 class RouteValidator < ActiveModel::EachValidator
-	# include ActionView::Helpers::UrlHelper
-	# include ActionDispatch::Routing
-	# include Rails.application.routes.url_helpers
+
+	def initialize(options)
+	  super
+	  scrub_options options
+	end
 
 	def validate_each(record, attribute, value)
 		# Get all Routes
 		inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
 		routes = inspector.format(ValidRoute::RouteFormatter.new)
-		
-		# options = clean_options(options)
 
-		unless options[:additional_routes_reserved].nil?
-			options[:additional_routes_reserved].map! { |route_path|
-				route_path = "/" + route_path if route_path[0] != "/"
-			}
-		end
+		routes = scrub_routes routes
 
-		unless options[:unreserved_routes].nil?
-			options[:unreserved_routes].map! { |route_path|
-				route_path = "/" + route_path if route_path[0] != "/"
-			}
-		end
-
-
-		# Add the additional routes 
-		unless options[:additional_routes_reserved].nil?
-			options[:additional_routes_reserved].each { |route_path|
-				routes << {path: route_path, verb: 'GET', reqs: ''}
-			}
-		end
-
-		# Remove unreserved routes
-		unless options[:unreserved_routes].nil?
-			routes.delete_if { |route|
-				route_included = false
-				options[:unreserved_routes].each { |route_path|
-					route_included = route_included || route[:path].include?(route_path)
-				}
-				route_included
-			}
-		end
-
-
-		# Filter for matching GET requests only
-		routes.delete_if { |route|
-			route[:verb] != "GET"
-		}
-
-		conflicts = check_conflicts(routes, record)
+		conflicts = check_conflicts routes, record
 
 		
 
 		unless conflicts.empty?
-			record.errors[attribute] << (options[:message] || "route is taken")
+			record.errors[attribute] << (@options[:message] || "route is taken")
 		end
 	end
 
@@ -72,15 +37,12 @@ class RouteValidator < ActiveModel::EachValidator
 
 
 		# Get all possibly conflicting paths (routes to the same path, unless it's a path for the current controller)
-		# TODO: this will try to match '/pages' and '/:id', instead of '/pages' to '/pages'.
-		# make sure that you're checking the symbol path as well as the symbol-replaced path
-		# hardcoded to :id right now. can we get more intelligent about that?
-		# The 301 redirect route is breaking this right now for the home page.
 		possible_conflicts = []
 		routes_to_create.each {|route_to_create|
 			routes.each {|route|
 				unless route == route_to_create
-					substituted_route = route_to_create[:path].sub(":id", record.to_param)
+					parameter = route_to_create[:path].split(/.*?(:[^\/]*)/).last || ""
+					substituted_route = route_to_create[:path].sub(parameter, record.to_param)
 					if (route[:path] == route_to_create[:path]) or (route[:path] == substituted_route)
 						possible_conflicts.push route 
 					end
@@ -90,19 +52,15 @@ class RouteValidator < ActiveModel::EachValidator
 		}
 
 		# if there is an already existing route for a non-show and non-edit action, add it to the list of conflicting paths
-		# TODO: this will try to match '/pages' and '/:id', instead of '/pages' to '/pages'.
-		# make sure that you're checking the symbol path as well as the symbol-replaced path.
-		# hardcoded to :id right now. can we get more intelligent about that?
-		# The 301 redirect route is breaking this right now for the home page.
-		# contact_us can be a username right now for some reason.
 		possible_conflicts.each {|route|
 			routes_to_create.each {|route_to_create|
-				# unless (route[:reqs].include?("#show") or route[:reqs].include?("#edit"))
-					substituted_route = route_to_create[:path].sub(":id", record.to_param)
+				unless (route[:reqs].include?("#show") or route[:reqs].include?("#edit"))
+					parameter = route_to_create[:path].split(/.*?(:[^\/]*)/).last || ""
+					substituted_route = route_to_create[:path].sub(parameter, record.to_param)
 					if (route[:path] == route_to_create[:path]) or (route[:path] == substituted_route)
 						conflicts.push route
 					end
-				# end
+				end
 			}
 		}
 
@@ -116,9 +74,13 @@ class RouteValidator < ActiveModel::EachValidator
 					else
 						klass_underscored = route[:reqs].slice(/(.*)(#)(.*)/, 1).singularize
 					end
-					
 					klass = klass_underscored.classify.constantize
-					conflicts.push route if klass.exists?(record.to_param)
+					if klass.exists?(record.to_param)
+						conflicts.push route unless klass.find(record.to_param).eql? record
+					end
+					if record.class.exists?(record.to_param)
+						conflicts.push route unless record.class.find(record.to_param).eql? record
+					end
 				end
 			}
 		}
@@ -126,9 +88,9 @@ class RouteValidator < ActiveModel::EachValidator
 		conflicts
 	end
 
-	def clean_options(options)
-		unless options[:additional_routes_reserved].nil?
-			options[:additional_routes_reserved].map! { |route_path|
+	def scrub_options(options)
+		unless options[:reserved_routes].nil?
+			options[:reserved_routes].map! { |route_path|
 				route_path = "/" + route_path if route_path[0] != "/"
 			}
 		end
@@ -138,6 +100,55 @@ class RouteValidator < ActiveModel::EachValidator
 				route_path = "/" + route_path if route_path[0] != "/"
 			}
 		end
+	end
 
+	def scrub_routes(routes)
+
+		# Add the additional routes 
+		unless @options[:reserved_routes].nil?
+			@options[:reserved_routes].each { |route_path|
+				# puts "valid_route:110 #{route_path}"
+				routes << {path: route_path, verb: 'GET', reqs: ''}
+			}
+		end
+
+		# Remove unreserved routes
+		unless @options[:unreserved_routes].nil?
+			routes.delete_if { |route|
+				route_included = false
+				@options[:unreserved_routes].each { |route_path|
+					# puts "valid_route:120 #{route[:path]} #{route_path}"
+					route_included = route_included || (route[:path] == route_path)
+				}
+				route_included
+			}
+		end
+
+		# Filter for matching GET requests only
+		routes.delete_if { |route|
+			delete = false
+			delete = route[:verb] != "GET" || delete
+			# delete = route[:reqs].include?("redirect") || delete
+			# delete
+		}
+
+		# Allow redirect paths 
+		routes.each {|route|
+			if route[:reqs].include?("redirect")
+				redirected_path = route[:reqs].slice(/.*redirect\(\d*,\s([^\)]*)\)/, 1)
+				delete_original = false
+				routes.each {|route_to_match|
+					if route_to_match[:path] == redirected_path
+						redirected_route = route.clone
+						redirected_route[:reqs] = route_to_match[:reqs]
+						routes << redirected_route
+						delete_original = true
+					end
+				}
+				routes.delete route if delete_original
+			end
+		}
+
+		routes.compact.flatten.uniq
 	end
 end

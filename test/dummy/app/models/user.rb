@@ -4,7 +4,7 @@ class User < ActiveRecord::Base
 	# extend FriendlyId
  #  	friendly_id :username #, use: :slugged
 
-	validates :username, :route => true
+	validates :username, :route => {reserved_routes: ["about", "admin"]}
 
 	validates_format_of :username, :without => /^\d/, :multiline => true
 

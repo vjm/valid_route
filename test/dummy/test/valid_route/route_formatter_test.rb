@@ -12,6 +12,12 @@ class RouteFormatterTest < ActionController::TestCase
 		expected_results.push({path: '/', verb: 'GET', reqs: 'pages#show {:id=>"home"}'})
 		expected_results.push({path: '/home', verb: 'GET', reqs: 'redirect(301, /)'})
 		expected_results.push({path: '/contact_us', verb: 'GET', reqs: 'pages#show {:id=>"contact"}'})
+
+		expected_results.push({:path=>"/users", :verb=>"GET", :reqs=>"users#index"})
+		expected_results.push({:path=>"/users/new", :verb=>"GET", :reqs=>"users#new"})
+		expected_results.push({:path=>"/users/:id/edit", :verb=>"GET", :reqs=>"users#edit"})
+		expected_results.push({:path=>"/users/:id", :verb=>"GET", :reqs=>"users#show"})
+		expected_results.push({:path=>"/:id", :verb=>"GET", :reqs=>"users#show"})
 		
 
 		inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
