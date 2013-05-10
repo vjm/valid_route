@@ -81,5 +81,12 @@ class RouteValidatorTest < ActionController::TestCase
 
 
 	end
+
+	test "unreserved reserved routes option" do
+
+		assert false
+
+
+	end
 	
 end
