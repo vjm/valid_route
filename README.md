@@ -1,22 +1,24 @@
-# Purpose
+#Valid Route
+
+## Purpose
 
 valid_route ensures that your routes that are dynamically generated do not conflict.
 
-# Requirements
+## Requirements
 
 * rails >= 4.0.0.beta1
 * valid_route expects that your model's records can be found by passing the results of Model.to_param into Model.find() and Model.exists?()
     * You can implement the methods yourself (see below) or use a gem such as friendly_id to accomplish this for you.
 
-# Usage
+## Usage
 
 Let's assume you want valid a Page model with a :permalink property that dynamically determines what URL the page is accessible at.
 
-Gemfile:
+#### Gemfile:
 
     gem 'valid_route'
 
-page.rb:
+#### page.rb:
 
     class Page < ActiveRecord::Base
         # rails g scaffold Page name:string permalink:string content:text
@@ -41,7 +43,7 @@ page.rb:
 
 That's it! Your routes are now protected against conflicts for all dynamic routes. Let's look at an example:
 
-routes.rb:
+#### routes.rb:
     
     MyGreatApp::Application.routes.draw do
       resources :users
@@ -86,7 +88,7 @@ Other records for the Page model that have already been taken:
 
 You can also check across multiple models:
 
-app/constraints/page_constraint.rb:
+#### app/constraints/page_constraint.rb:
 
     # http://robotslacker.com/2012/01/rails-3-routes-configuration-dynamic-segments-constraints-and-scope/
     class PageConstraint
@@ -98,7 +100,7 @@ app/constraints/page_constraint.rb:
         end
     end
 
-user.rb:
+#### user.rb:
 
     class User < ActiveRecord::Base
         # rails g scaffold User username:string password:string first_name:string
@@ -121,7 +123,7 @@ user.rb:
     end
 
 
-routes.rb:
+#### routes.rb:
 
     Dummy::Application.routes.draw do
       resources :users
@@ -176,9 +178,11 @@ Let's take a look:
     p.valid? # => false
 
 
+### Reserving Additional Routes
+
 You can also reserve additional routes to prevent them from being used in a particular model:
 
-page.rb:
+#### page.rb:
 
     class Page < ActiveRecord::Base
         # rails g scaffold Page name:string permalink:string content:text
@@ -186,9 +190,29 @@ page.rb:
         validates :permalink, :route => {reserved_routes: ["reserved", "fake_page"]}
 
         # ...
-    end    
+    end
 
+    p = Page.new
+    p.permalink = "fake_page"
+    p.valid? # => false
 
+### Unreserving Routes
+
+Conversely, if you want to avoid checking certain routes for validity, you can do so as well: 
+
+#### page.rb:
+
+    class Page < ActiveRecord::Base
+        # rails g scaffold Page name:string permalink:string content:text
+
+        validates :permalink, :route => {reserved_routes: ["reserved", "fake_page"], unreserved_routes: ["users"]}
+
+        # ...
+    end
+
+    p = Page.new
+    p.permalink = "users"
+    p.valid? # => true
 
 # Credits
 

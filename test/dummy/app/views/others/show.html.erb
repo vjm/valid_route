@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @other.name %>
+</p>
+
+<p>
+  <strong>Permalink:</strong>
+  <%= @other.permalink %>
+</p>
+
+<p>
+  <strong>Content:</strong>
+  <%= @other.content %>
+</p>
+
+<%= link_to 'Edit', edit_other_path(@other) %> |
+<%= link_to 'Back', others_path %>

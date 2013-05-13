@@ -1,0 +1,31 @@
+<h1>Listing others</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Permalink</th>
+      <th>Content</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @others.each do |other| %>
+      <tr>
+        <td><%= other.name %></td>
+        <td><%= other.permalink %></td>
+        <td><%= other.content %></td>
+        <td><%= link_to 'Show', other %></td>
+        <td><%= link_to 'Edit', edit_other_path(other) %></td>
+        <td><%= link_to 'Destroy', other, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Other', new_other_path %>

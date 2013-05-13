@@ -25,6 +25,10 @@ class RouteValidatorTest < ActionController::TestCase
 		assert_routing '/users/new', { :controller => "users", :action => "new" }
 		assert_routing '/users', { :controller => "users", :action => "index" }
 
+		assert_recognizes({:controller => 'users', :action => 'index'}, '/all_users')
+		# assert_recognizes page_permalink_path, '/'
+		# assert_routing '/all_users', { :controller => "users", :action => "index" }
+
 		# assert_recognizes {:controller => 'users', :action => 'show', :id => 'vjm'}, '/vjm'
 
 
@@ -34,24 +38,24 @@ class RouteValidatorTest < ActionController::TestCase
 
 		pages_page = FactoryGirl.build(:page, permalink: "pages")
 		assert !pages_page.valid?, pages_page.errors.inspect
-		assert pages_page.errors.full_messages.include?("Permalink route is taken")
+		assert pages_page.errors.full_messages.include?("Permalink route is taken"), pages_page.errors.full_messages.inspect
 
 		vjm_page = FactoryGirl.build(:page, permalink: "vjm")
 		assert !vjm_page.valid?, vjm_page.errors.inspect
-		assert vjm_page.errors.full_messages.include?("Permalink route is taken")
+		assert vjm_page.errors.full_messages.include?("Permalink route is taken"), vjm_page.errors.full_messages.inspect
 		
 
 		home_user = FactoryGirl.build(:user, username: "home")
 		assert !home_user.valid?, home_user.errors.inspect
-		assert home_user.errors.full_messages.include?("Username route is taken")
+		assert home_user.errors.full_messages.include?("Username route is taken"), home_user.errors.full_messages.inspect
 
 		contact_user = FactoryGirl.build(:user, username: "contact")
 		assert !contact_user.valid?, contact_user.errors.inspect
-		assert contact_user.errors.full_messages.include?("Username route is taken")
+		assert contact_user.errors.full_messages.include?("Username route is taken"), contact_user.errors.full_messages.inspect
 
 		pages_user = FactoryGirl.build(:user, username: "pages")
 		assert !pages_user.valid?, pages_user.errors.inspect
-		assert pages_user.errors.full_messages.include?("Username route is taken")
+		assert pages_user.errors.full_messages.include?("Username route is taken"), pages_user.errors.full_messages.inspect
 
 
 
@@ -65,26 +69,34 @@ class RouteValidatorTest < ActionController::TestCase
 
 		tommy_page = FactoryGirl.build(:page, permalink: "tommy")
 		assert !tommy_page.valid?, actual_results
-		assert tommy_page.errors.full_messages.include?("Permalink route is taken")
+		assert tommy_page.errors.full_messages.include?("Permalink route is taken"), tommy_page.errors.full_messages.inspect
 
 		reserved_page = FactoryGirl.build(:page, permalink: "reserved")
 		assert !reserved_page.valid?, reserved_page.errors.inspect
-		assert reserved_page.errors.full_messages.include?("Permalink route is taken")
+		assert reserved_page.errors.full_messages.include?("Permalink route is taken"), reserved_page.errors.full_messages.inspect
 
 		about_user = FactoryGirl.build(:user, username: "about")
 		assert !about_user.valid?, about_user.errors.inspect
-		assert about_user.errors.full_messages.include?("Username route is taken")
+		assert about_user.errors.full_messages.include?("Username route is taken"), about_user.errors.full_messages.inspect
 
 		admin_user = FactoryGirl.build(:user, username: "admin")
 		assert !admin_user.valid?, admin_user.errors.inspect
-		assert admin_user.errors.full_messages.include?("Username route is taken")
+		assert admin_user.errors.full_messages.include?("Username route is taken"), admin_user.errors.full_messages.inspect
 
 
 	end
 
-	test "unreserved reserved routes option" do
+	test "unreserved routes option" do
 
-		assert false
+		pages_user = FactoryGirl.build(:user, username: "pages")
+		assert !pages_user.valid?, pages_user.errors.inspect
+		assert pages_user.errors.full_messages.include?("Username route is taken"), pages_user.errors.full_messages.inspect
+
+		pages_other = FactoryGirl.build(:other, permalink: "pages")
+		assert pages_other.valid?
+		# assert pages_other.errors.full_messages.include?("Permalink route is taken"), pages_other.errors.full_messages.inspect
+
+		
 
 
 	end
