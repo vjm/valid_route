@@ -1,8 +1,10 @@
 class RouteValidator < ActiveModel::EachValidator
 
 	def initialize(options)
+	  # options[:get_all_conflicts] = true
 	  super
 	  scrub_options options
+	  
 	end
 
 	def validate_each(record, attribute, value)
@@ -12,9 +14,7 @@ class RouteValidator < ActiveModel::EachValidator
 
 		routes = scrub_routes routes
 
-		conflicts = check_conflicts routes, record
-
-		
+		conflicts = check_conflicts routes, record	
 
 		unless conflicts.empty?
 			record.errors[attribute] << (@options[:message] || "route is taken")
@@ -59,9 +59,11 @@ class RouteValidator < ActiveModel::EachValidator
 					substituted_route = route_to_create[:path].sub(parameter, record.to_param)
 					if (route[:path] == route_to_create[:path]) or (route[:path] == substituted_route)
 						conflicts.push route
+						break unless @options[:get_all_conflicts]
 					end
 				end
 			}
+			break if !conflicts.empty? unless @options[:get_all_conflicts]
 		}
 
 		# Check for existing records of other Classes' Show actions, add it to the conflicting paths if the record at that path already exists
@@ -69,20 +71,26 @@ class RouteValidator < ActiveModel::EachValidator
 			routes_to_create.each {|route_to_create|
 				if route[:reqs].include?("#show") or route[:reqs].include?("#edit")
 					if route[:reqs].include?("/") # is this a namespaced route or anything?
-						route_controller_segments = route[:reqs].split(/^(.*\/)(.*)$/)
-						klass_underscored = route_controller_segments[0] + route_controller_segments[1].singularize
+						route_controller_segments = route[:reqs].slice(/(.*)(#)(.*)/, 1).split(/^(.*\/)(.*)$/)
+						last_segment = route_controller_segments.pop.singularize
+						klass_underscored = route_controller_segments.join("") + last_segment
+
+						# TODO: THIS has no coverage
 					else
 						klass_underscored = route[:reqs].slice(/(.*)(#)(.*)/, 1).singularize
 					end
 					klass = klass_underscored.classify.constantize
 					if klass.exists?(record.to_param)
 						conflicts.push route unless klass.find(record.to_param).eql? record
+						break unless @options[:get_all_conflicts]
 					end
 					if record.class.exists?(record.to_param)
 						conflicts.push route unless record.class.find(record.to_param).eql? record
+						break unless @options[:get_all_conflicts]
 					end
 				end
 			}
+			break if !conflicts.empty? unless @options[:get_all_conflicts]
 		}
 
 		conflicts
@@ -107,7 +115,6 @@ class RouteValidator < ActiveModel::EachValidator
 		# Add the additional routes 
 		unless @options[:reserved_routes].nil?
 			@options[:reserved_routes].each { |route_path|
-				# puts "valid_route:110 #{route_path}"
 				routes << {path: route_path, verb: 'GET', reqs: ''}
 			}
 		end
@@ -117,7 +124,6 @@ class RouteValidator < ActiveModel::EachValidator
 			routes.delete_if { |route|
 				route_included = false
 				@options[:unreserved_routes].each { |route_path|
-					# puts "valid_route:120 #{route[:path]} #{route_path}"
 					route_included = route_included || (route[:path] == route_path)
 				}
 				route_included

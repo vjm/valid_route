@@ -1,0 +1,27 @@
+<h1>Listing namespaced_whizzers</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Permalink</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @namespaced_whizzers.each do |namespaced_whizzer| %>
+      <tr>
+        <td><%= namespaced_whizzer.permalink %></td>
+        <td><%= link_to 'Show', namespaced_whizzer %></td>
+        <td><%= link_to 'Edit', edit_namespaced_whizzer_path(namespaced_whizzer) %></td>
+        <td><%= link_to 'Destroy', namespaced_whizzer, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Whizzer', new_namespaced_whizzer_path %>

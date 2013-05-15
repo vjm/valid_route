@@ -31,6 +31,10 @@ class RouteValidatorTest < ActionController::TestCase
 
 		# assert_recognizes {:controller => 'users', :action => 'show', :id => 'vjm'}, '/vjm'
 
+		assert_routing '/namespaced/whizzers', { :controller => "namespaced/whizzers", :action => "index" }
+		assert_routing '/namespaced/whizzers/new', { :controller => "namespaced/whizzers", :action => "new" }
+		assert_routing '/namespaced/whizzers/one', { :controller => "namespaced/whizzers", :action => "show", :id => "one" }
+		assert_routing '/namespaced/whizzers/one/edit', { :controller => "namespaced/whizzers", :action => "edit", :id => "one" }
 
 		users_page = FactoryGirl.build(:page, permalink: "users")
 		assert !users_page.valid?
@@ -57,6 +61,14 @@ class RouteValidatorTest < ActionController::TestCase
 		assert !pages_user.valid?, pages_user.errors.inspect
 		assert pages_user.errors.full_messages.include?("Username route is taken"), pages_user.errors.full_messages.inspect
 
+		pages_user = FactoryGirl.build(:user, username: "namespaced/whizzers")
+		assert !pages_user.valid?, pages_user.errors.inspect
+		assert pages_user.errors.full_messages.include?("Username route is taken"), pages_user.errors.full_messages.inspect
+
+		pages_user = FactoryGirl.build(:user, username: "namespaced/whizzers/test")
+		assert pages_user.valid?, pages_user.errors.inspect
+
+		# TODO: add a test for namespaced routes
 
 
 

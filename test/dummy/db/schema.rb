@@ -11,7 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130513145529) do
+ActiveRecord::Schema.define(version: 20130515201559) do
+
+  create_table "namespaced_whizzers", force: true do |t|
+    t.string   "permalink"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "others", force: true do |t|
     t.string   "name"

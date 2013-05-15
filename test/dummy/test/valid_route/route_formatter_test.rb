@@ -25,6 +25,11 @@ class RouteFormatterTest < ActionController::TestCase
 		expected_results.push({:path=>"/others/:id/edit", :verb=>"GET", :reqs=>"others#edit"})
 		expected_results.push({:path=>"/others/:id", :verb=>"GET", :reqs=>"others#show"})
 		expected_results.push({:path=>"/:id", :verb=>"GET", :reqs=>"others#show"})
+
+		expected_results.push({:path=>"/namespaced/whizzers", :verb=>"GET", :reqs=>"namespaced/whizzers#index"})
+		expected_results.push({:path=>"/namespaced/whizzers/new", :verb=>"GET", :reqs=>"namespaced/whizzers#new"})
+		expected_results.push({:path=>"/namespaced/whizzers/:id/edit", :verb=>"GET", :reqs=>"namespaced/whizzers#edit"})
+		expected_results.push({:path=>"/namespaced/whizzers/:id", :verb=>"GET", :reqs=>"namespaced/whizzers#show"})
 		
 
 		inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)

@@ -1,4 +1,8 @@
 Dummy::Application.routes.draw do
+  namespace :namespaced do
+    resources :whizzers
+  end
+
   resources :others
 
   resources :users
