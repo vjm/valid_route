@@ -43,7 +43,7 @@ class RouteValidator < ActiveModel::EachValidator
 				unless route == route_to_create
 					parameter = route_to_create[:path].split(/.*?(:[^\/]*)/).last || ""
 					substituted_route = route_to_create[:path].sub(parameter, record.to_param)
-					if (route[:path] == route_to_create[:path]) or (route[:path] == substituted_route)
+					if (route[:path] == route_to_create[:path]) or (route[:path] == substituted_route) and route[:reqs] != route_to_create[:reqs]
 						possible_conflicts.push route 
 					end
 				end
@@ -71,6 +71,7 @@ class RouteValidator < ActiveModel::EachValidator
 			routes_to_create.each {|route_to_create|
 				if route[:reqs].include?("#show") or route[:reqs].include?("#edit")
 					if route[:reqs].include?("/") # is this a namespaced route or anything?
+						puts route[:reqs]
 						route_controller_segments = route[:reqs].slice(/(.*)(#)(.*)/, 1).split(/^(.*\/)(.*)$/)
 						last_segment = route_controller_segments.pop.singularize
 						klass_underscored = route_controller_segments.join("") + last_segment
